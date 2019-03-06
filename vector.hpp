@@ -24,8 +24,8 @@ private:
 		arrSize *= 2;
 		T *ex_arr = (T*) ::operator new (sizeof(T) * arrSize);
 		for (int i = 0; i < dataSize; ++i)
-			ex_arr[i] = arr[i];
-		delete []arr;
+			new(&ex_arr[i]) T(arr[i]);
+		::operator delete(arr);
 		arr = ex_arr;
 	}
 public:
@@ -282,14 +282,16 @@ public:
 		arr = (T*) ::operator new (sizeof(T) * arrSize);
 		dataSize = other.dataSize;
 		for (int i = 0; i < other.dataSize; ++i)
-			arr[i] = other.arr[i];
+			new (&arr[i]) T(other.arr[i]);
 	}
 	/**
 	 * TODO Destructor
 	 */
 	~vector()
 	{
-		delete []arr;
+		for (int i = 0; i < dataSize; i++)
+			arr[i].~T();
+		::operator delete(arr); 
 	}
 	/**
 	 * TODO Assignment operator
@@ -299,12 +301,12 @@ public:
 		if (arrSize < other.arrSize)
 		{
 			arrSize = other.arrSize;
-			delete []arr;
+			::operator delete(arr);
 			arr = (T*) ::operator new (sizeof(T) * arrSize);
 		}
 		dataSize = other.dataSize;
-		for (int i = 0; i < other.dataSize; ++i)
-			arr[i] = other.arr[i];
+		for (int i = 0; i < other.dataize; ++i)
+			new (&arr[i]) T(other.arr[i]);
 	}
 	/**
 	 * assigns specified element with bounds checking
@@ -416,11 +418,12 @@ public:
 	 */
 	iterator insert(iterator pos, const T &value)
 	{
-		if (dataSize + 1 > arrSize)
+		if (dataSize + 1 == arrSize)
 			expand();
-		++dataSize;
+		new(&arr[dataSize]) T(arr[dataSize - 1]);
 		for (int i = dataSize - 1; i > pos.index; --i)
 			arr[i] = arr[i - 1];
+		++dataSize;
 		arr[pos.index] = value;
 		return iterator(arr, pos.index);
 	}
@@ -434,11 +437,12 @@ public:
 	{
 		if (ind < 0 || ind > dataSize)
 			throw index_out_of_bound();
-		if (dataSize + 1 > arrSize)
+		if (dataSize + 1 == arrSize)
 			expand();
-		++dataSize;
+		new(&arr[dataSize]) T(arr[dataSize - 1]);
 		for (int i = dataSize - 1; i > ind; --i)
 			arr[i] = arr[i - 1];
+		++dataSize;
 		arr[ind] = value;
 		return iterator(arr, ind);
 	}
@@ -449,9 +453,10 @@ public:
 	 */
 	iterator erase(iterator pos)
 	{
-		--dataSize;
 		for (int i = pos.index; i < dataSize; ++i)
 			arr[i] = arr[i + 1];
+		arr[dataSize].~T();
+		--dataSize;
 		return iterator(arr, pos.index);
 	}
 	/**
@@ -463,9 +468,10 @@ public:
 	{
 		if (ind >= dataSize)
 			throw index_out_of_bound();
-		--dataSize;
 		for (int i = ind; i < dataSize; ++i)
 			arr[i] = arr[i + 1];
+		arr[dataSize].~T();
+		--dataSize;
 		return iterator(arr, ind);
 	}
 	/**
@@ -473,9 +479,9 @@ public:
 	 */
 	void push_back(const T &value)
 	{
-		if (dataSize + 1 > arrSize)
+		if (dataSize + 1 == arrSize)
 			expand();
-		arr[dataSize] = value;
+		new(&arr[dataSize]) T(value);
 		++dataSize;
 	}
 	/**
@@ -486,6 +492,7 @@ public:
 	{
 		if (empty())
 			throw container_is_empty();
+		arr[dataSize].~T();
 		--dataSize;
 	}
 };
