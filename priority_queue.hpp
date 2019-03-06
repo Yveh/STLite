@@ -14,27 +14,28 @@ namespace sjtu {
 template<typename T, class Compare = std::less<T>>
 class priority_queue {
 private:
-	class pnode
+	class node
 	{
 		public:
 			T key;
 			size_t degree;
-			pnode *left, *right, *child;
+			node *left, *right, *child;
 
-            pnode(const T &_key, const size_t &_degree = 0) : degree(_degree), key(_key), left(this), right(this), child(nullptr)
+            node(const T &_key, const size_t &_degree = 0) : degree(_degree), key(_key), left(this), right(this), child(nullptr)
             {
             }
-            ~pnode()
+            ~node()
             {
             }
 	};
 
 	size_t keyNum;
-    pnode *min;
+    node *min;
+    node **A;
     
-    void del(pnode *cur)
+    void del(node *cur)
     {
-    	pnode *tmp = cur, *_right;
+    	node *tmp = cur, *_right;
     	do
         {
         	if (tmp->child != nullptr)
@@ -44,16 +45,16 @@ private:
             tmp = _right;
         } while(tmp != cur);
     }
-    void cra(pnode **cur, pnode *other)
+    void cra(node **cur, node *other)
     {
-        pnode *tail = new pnode(other->key, other->degree);
-        pnode *head = tail;
+        node *tail = new node(other->key, other->degree);
+        node *head = tail;
         if (other->child != nullptr)
             cra(&(tail->child), other->child);
-        pnode *tmp = other->right;
+        node *tmp = other->right;
         while (tmp != other)
         {
-            tail->right = new pnode(tmp->key, tmp->degree);
+            tail->right = new node(tmp->key, tmp->degree);
             tail->right->left = tail;
             tail = tail->right;
 
@@ -74,11 +75,14 @@ public:
     {
         keyNum = 0;
         min = nullptr;
+        A = new node*[64];
     }
 	priority_queue(const priority_queue &other)
     {
+    	min = nullptr;
     	cra(&min, other.min);
         keyNum = other.keyNum;
+        A = new node*[64];
     }
 	/**
 	 * TODO deconstructor
@@ -87,6 +91,7 @@ public:
     {
     	if (min != nullptr)
         	del(min);
+        delete []A;
     }
 	/**
 	 * TODO Assignment operator
@@ -112,7 +117,7 @@ public:
 	 * TODO
 	 * push new element to the priority queue.
 	 */
-    void addToList(pnode *a, pnode *list)
+    void addToList(node *a, node *list)
     {
         list->left->right = a;
         a->left->right = list;
@@ -120,7 +125,7 @@ public:
     }
 	void push(const T &e)
     {
-        pnode *nd = new pnode(e);
+        node *nd = new node(e);
         if (empty())
             min = nd;
         else
@@ -140,11 +145,10 @@ public:
     {
         int lgn = 1;
         for (int i = 1; i <= keyNum + 1; i *= 2, ++lgn);
-        pnode **A = new pnode*[lgn];
         for (int i = 0; i < lgn; i++)
             A[i] = nullptr;
 
-        pnode *tmp = min, *_right = min->right, *x, *y;
+        node *tmp = min, *_right = min->right, *x, *y;
         do
         {
         	tmp = _right;
@@ -194,7 +198,7 @@ public:
     {
         if (empty())
            throw container_is_empty();
-        pnode *tmp = min->child;
+        node *tmp = min->child;
         if (tmp != nullptr)
             addToList(tmp, min);
             
