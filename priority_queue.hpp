@@ -77,6 +77,8 @@ public:
         keyNum = 0;
         min = nullptr;
         A = new node*[64];
+        for (int i = 0; i < 64; i++)
+        	A[i] = nullptr;
     }
 	priority_queue(const priority_queue &other)
     {
@@ -84,6 +86,8 @@ public:
     	cra(&min, other.min);
         keyNum = other.keyNum;
         A = new node*[64];
+        for (int i = 0; i < 64; i++)
+        	A[i] = nullptr;
     }
 	/**
 	 * TODO deconstructor
@@ -146,8 +150,6 @@ public:
     {
         int lgn = 1;
         for (int i = 1; i <= keyNum + 1; i *= 2, ++lgn);
-        for (int i = 0; i < lgn; i++)
-            A[i] = nullptr;
 
         node *tmp = min, *_right = min->right, *x, *y;
         do
@@ -193,6 +195,7 @@ public:
                     if (cc(min->key, A[i]->key))
                        min = A[i];
                 }
+                A[i] = nullptr;
             }
     }
 	void pop()
