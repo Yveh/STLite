@@ -32,6 +32,7 @@ private:
 	size_t keyNum;
     node *min;
     node **A;
+    Compare cc;
     
     void del(node *cur)
     {
@@ -131,7 +132,7 @@ public:
         else
         {
             addToList(nd, min);
-            if (Compare()(min->key, e))
+            if (cc(min->key, e))
                 min = nd;
         }
         ++keyNum;
@@ -159,7 +160,7 @@ public:
             while (A[d] != nullptr)
             {
                 y = A[d];
-                if (Compare()(x->key, y->key))
+                if (cc(x->key, y->key))
                     std::swap(x, y);
                 y->left->right = y->right;
                 y->right->left = y->left;
@@ -189,7 +190,7 @@ public:
                 else
                 {
                     addToList(A[i], min);
-                    if (Compare()(min->key, A[i]->key))
+                    if (cc(min->key, A[i]->key))
                        min = A[i];
                 }
             }
@@ -248,7 +249,7 @@ public:
         else
         {
             addToList(other.min, min);
-            if (Compare()(min->key, other.min->key))
+            if (cc(min->key, other.min->key))
                 min = other.min;
             keyNum += other.keyNum;
         }
