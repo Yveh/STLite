@@ -22,7 +22,7 @@ private:
 	void expand()
 	{
 		arrSize *= 2;
-		T *ex_arr = new T[arrSize];
+		T *ex_arr = (T*) ::operator new (sizeof(T) * arrSize);
 		for (int i = 0; i < dataSize; ++i)
 			ex_arr[i] = arr[i];
 		delete []arr;
@@ -272,14 +272,14 @@ public:
 	 */
 	vector()
 	{
-		arr = new T[1];
+		arr = (T*) ::operator new (sizeof(T));
 		arrSize = 1;
 		dataSize = 0;
 	}
 	vector(const vector &other)
 	{
 		arrSize = other.arrSize;
-		arr = new T[arrSize];
+		arr = (T*) ::operator new (sizeof(T) * arrSize);
 		dataSize = other.dataSize;
 		for (int i = 0; i < other.dataSize; ++i)
 			arr[i] = other.arr[i];
@@ -300,7 +300,7 @@ public:
 		{
 			arrSize = other.arrSize;
 			delete []arr;
-			arr = new T[arrSize];
+			arr = (T*) ::operator new (sizeof(T) * arrSize);
 		}
 		dataSize = other.dataSize;
 		for (int i = 0; i < other.dataSize; ++i)
@@ -450,7 +450,7 @@ public:
 	iterator erase(iterator pos)
 	{
 		--dataSize;
-		for (int i = pos.index; i < dataSize; i++)
+		for (int i = pos.index; i < dataSize; ++i)
 			arr[i] = arr[i + 1];
 		return iterator(arr, pos.index);
 	}
@@ -464,7 +464,7 @@ public:
 		if (ind >= dataSize)
 			throw index_out_of_bound();
 		--dataSize;
-		for (int i = ind; i < dataSize; i++)
+		for (int i = ind; i < dataSize; ++i)
 			arr[i] = arr[i + 1];
 		return iterator(arr, ind);
 	}
@@ -473,7 +473,7 @@ public:
 	 */
 	void push_back(const T &value)
 	{
-		if (dataSize + 1 == arrSize)
+		if (dataSize + 1 > arrSize)
 			expand();
 		arr[dataSize] = value;
 		++dataSize;
