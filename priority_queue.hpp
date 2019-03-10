@@ -21,12 +21,8 @@ private:
 			size_t degree;
 			node *left, *right, *child;
 
-            node(const T &_key, const size_t &_degree = 0) : degree(_degree), key(_key), left(this), right(this), child(nullptr)
-            {
-            }
-            ~node()
-            {
-            }
+            node(const T &_key, const size_t &_degree = 0) : degree(_degree), key(_key), left(this), right(this), child(nullptr) {}
+            ~node() {}
 	};
 
 	size_t keyNum;
@@ -205,8 +201,6 @@ public:
         node *tmp = min->child;
         if (tmp != nullptr)
             addToList(tmp, min);
-            
-        
         --keyNum;
         if (empty())
         {
@@ -256,6 +250,7 @@ public:
                 min = other.min;
             keyNum += other.keyNum;
         }
+        other.min = nullptr;
     }
 };
 
