@@ -41,20 +41,16 @@ public:
 	class iterator
 	{
 		friend vector;
-	
 	private:
 		/**
 		 * TODO add data members
 		 *   just add whatever you want.
 		 */
 		int index;
-		T *arr;
+		vector<T> *vec;
+
+		iterator(vector<T> *_vec = nullptr, int _index = 0) : vec(_vec), index(_index) {};
 	public:
-		iterator(T *_arr = nullptr, int _index = 0)
-		{
-			arr = _arr;
-			index = _index;
-		}
 		/**
 		 * return a new iterator which pointer n-next elements
 		 *   even if there are not enough elements, just return the answer.
@@ -62,30 +58,27 @@ public:
 		 */
 		iterator operator+(const int &n) const
 		{
-			//TODO
-			return iterator(arr, index + n);
+			return iterator(vec, index + n);
 		}
 		iterator operator-(const int &n) const
 		{
-			//TODO
-			return iterator(arr, index - n);
+			return iterator(vec, index - n);
 		}
 		// return th distance between two iterator,
 		// if these two iterators points to different vectors, throw invaild_iterator.
 		int operator-(const iterator &rhs) const
 		{
-			//TODO
+			if (vec != rhs.vec)
+				throw invalid_iterator();
 			return index - rhs.index;
 		}
 		iterator operator+=(const int &n)
 		{
-			//TODO
 			index += n;
 			return *this;
 		}
 		iterator operator-=(const int &n)
 		{
-			//TODO
 			index -= n;
 			return *this;
 		}
@@ -95,7 +88,7 @@ public:
 		iterator operator++(int)
 		{
 			++index;
-			return iterator(arr, index);
+			return iterator(vec, index);
 		}
 		/**
 		 * TODO ++iter
@@ -111,7 +104,7 @@ public:
 		iterator operator--(int)
 		{
 			--index;
-			return iterator(arr, index);
+			return iterator(vec, index);
 		}
 		/**
 		 * TODO --iter
@@ -126,29 +119,29 @@ public:
 		 */
 		T& operator*() const
 		{
-			return arr[index];
+			return vec->arr[index];
 		}
 		/**
 		 * a operator to check whether two iterators are same (pointing to the same memory).
 		 */
 		bool operator==(const iterator &rhs) const
 		{
-			return index == rhs.index;
+			return vec == rhs.vec && index == rhs.index;
 		}
 		bool operator==(const const_iterator &rhs) const
 		{
-			return index == rhs.index;
+			return vec == rhs.vec && index == rhs.index;
 		}
 		/**
 		 * some other operator for iterator.
 		 */
 		bool operator!=(const iterator &rhs) const
 		{
-			return index != rhs.index;
+			return vec != rhs.vec || index != rhs.index;
 		}
 		bool operator!=(const const_iterator &rhs) const
 		{
-			return index != rhs.index;
+			return vec != rhs.vec || index != rhs.index;
 		}
 	};
 	/**
@@ -158,17 +151,16 @@ public:
 	class const_iterator
 	{
 		friend vector;
-
 	private:
+		/**
+		 * TODO add data members
+		 *   just add whatever you want.
+		 */
 		int index;
-		T *arr;
+		const vector<T> *vec;
 
+		const_iterator(const vector<T> *_vec = nullptr, int _index = 0) : vec(_vec), index(_index) {};
 	public:
-		const_iterator(T *_arr = nullptr, int _index = 0)
-		{
-			arr = _arr;
-			index = _index;
-		}
 		/**
 		 * return a new iterator which pointer n-next elements
 		 *   even if there are not enough elements, just return the answer.
@@ -176,30 +168,27 @@ public:
 		 */
 		const_iterator operator+(const int &n) const
 		{
-			//TODO
-			return const_iterator(arr, index + n);
+			return const_iterator(vec, index + n);
 		}
 		const_iterator operator-(const int &n) const
 		{
-			//TODO
-			return const_iterator(arr, index - n);
+			return const_iterator(vec, index - n);
 		}
 		// return th distance between two iterator,
 		// if these two iterators points to different vectors, throw invaild_iterator.
 		int operator-(const const_iterator &rhs) const
 		{
-			//TODO
+			if (vec != rhs.vec)
+				throw invalid_iterator();
 			return index - rhs.index;
 		}
 		const_iterator operator+=(const int &n)
 		{
-			//TODO
 			index += n;
 			return *this;
 		}
 		const_iterator operator-=(const int &n)
 		{
-			//TODO
 			index -= n;
 			return *this;
 		}
@@ -209,7 +198,7 @@ public:
 		const_iterator operator++(int)
 		{
 			++index;
-			return const_iterator(arr, index);
+			return const_iterator(vec, index);
 		}
 		/**
 		 * TODO ++iter
@@ -225,7 +214,7 @@ public:
 		const_iterator operator--(int)
 		{
 			--index;
-			return const_iterator(arr, index);
+			return const_iterator(vec, index);
 		}
 		/**
 		 * TODO --iter
@@ -240,29 +229,29 @@ public:
 		 */
 		T& operator*() const
 		{
-			return arr[index];
+			return vec->arr[index];
 		}
 		/**
 		 * a operator to check whether two iterators are same (pointing to the same memory).
 		 */
 		bool operator==(const iterator &rhs) const
 		{
-			return index == rhs.index;
+			return vec == rhs.vec && index == rhs.index;
 		}
 		bool operator==(const const_iterator &rhs) const
 		{
-			return index == rhs.index;
+			return vec == rhs.vec && index == rhs.index;
 		}
 		/**
 		 * some other operator for iterator.
 		 */
 		bool operator!=(const iterator &rhs) const
 		{
-			return index != rhs.index;
+			return vec != rhs.vec || index != rhs.index;
 		}
 		bool operator!=(const const_iterator &rhs) const
 		{
-			return index != rhs.index;
+			return vec != rhs.vec || index != rhs.index;
 		}
 
 	};
@@ -305,7 +294,7 @@ public:
 			arr = (T*) ::operator new (sizeof(T) * arrSize);
 		}
 		dataSize = other.dataSize;
-		for (int i = 0; i < other.dataize; ++i)
+		for (int i = 0; i < other.dataSize; ++i)
 			new (&arr[i]) T(other.arr[i]);
 	}
 	/**
@@ -367,22 +356,22 @@ public:
 	 */
 	iterator begin()
 	{
-		return iterator(arr, 0);
+		return iterator(this, 0);
 	}
 	const_iterator cbegin() const
 	{
-		return const_iterator(arr, 0);
+		return const_iterator(this, 0);
 	}
 	/**
 	 * returns an iterator to the end.
 	 */
 	iterator end()
 	{
-		return iterator(arr, dataSize);
+		return iterator(this, dataSize);
 	}
 	const_iterator cend() const
 	{
-		return const_iterator(arr, dataSize);
+		return const_iterator(this, dataSize);
 	}
 	/**
 	 * checks whether the container is empty
@@ -418,6 +407,8 @@ public:
 	 */
 	iterator insert(iterator pos, const T &value)
 	{
+		if (pos.vec != this)
+			throw invalid_iterator();
 		if (dataSize + 1 == arrSize)
 			expand();
 		new(&arr[dataSize]) T(arr[dataSize - 1]);
@@ -425,7 +416,7 @@ public:
 			arr[i] = arr[i - 1];
 		++dataSize;
 		arr[pos.index] = value;
-		return iterator(arr, pos.index);
+		return iterator(this, pos.index);
 	}
 	/**
 	 * inserts value at index ind.
@@ -444,7 +435,7 @@ public:
 			arr[i] = arr[i - 1];
 		++dataSize;
 		arr[ind] = value;
-		return iterator(arr, ind);
+		return iterator(this, ind);
 	}
 	/**
 	 * removes the element at pos.
@@ -453,11 +444,13 @@ public:
 	 */
 	iterator erase(iterator pos)
 	{
+		if (pos.vec != this)
+			throw invalid_iterator();
 		for (int i = pos.index; i < dataSize; ++i)
 			arr[i] = arr[i + 1];
 		arr[dataSize].~T();
 		--dataSize;
-		return iterator(arr, pos.index);
+		return iterator(this, pos.index);
 	}
 	/**
 	 * removes the element with index ind.
@@ -472,7 +465,7 @@ public:
 			arr[i] = arr[i + 1];
 		arr[dataSize].~T();
 		--dataSize;
-		return iterator(arr, ind);
+		return iterator(this, ind);
 	}
 	/**
 	 * adds an element to the end.
