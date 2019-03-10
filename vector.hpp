@@ -24,7 +24,7 @@ private:
 		arrSize *= 2;
 		T *ex_arr = (T*) ::operator new (sizeof(T) * arrSize);
 		for (int i = 0; i < dataSize; ++i)
-			new(&ex_arr[i]) T(arr[i]);
+			memcpy(&ex_arr[i], &arr[i], sizeof(T));
 		::operator delete(arr);
 		arr = ex_arr;
 	}
@@ -227,7 +227,7 @@ public:
 		/**
 		 * TODO *it
 		 */
-		T& operator*() const
+		const T& operator*() const
 		{
 			return vec->arr[index];
 		}
@@ -271,7 +271,7 @@ public:
 		arr = (T*) ::operator new (sizeof(T) * arrSize);
 		dataSize = other.dataSize;
 		for (int i = 0; i < other.dataSize; ++i)
-			new (&arr[i]) T(other.arr[i]);
+			memcpy(&arr[i], &other.arr[i], sizeof(T));
 	}
 	/**
 	 * TODO Destructor
@@ -295,7 +295,7 @@ public:
 		}
 		dataSize = other.dataSize;
 		for (int i = 0; i < other.dataSize; ++i)
-			new (&arr[i]) T(other.arr[i]);
+			memcpy(&arr[i], &other.arr[i], sizeof(T));
 	}
 	/**
 	 * assigns specified element with bounds checking
@@ -411,11 +411,10 @@ public:
 			throw invalid_iterator();
 		if (dataSize + 1 == arrSize)
 			expand();
-		new(&arr[dataSize]) T(arr[dataSize - 1]);
-		for (int i = dataSize - 1; i > pos.index; --i)
-			arr[i] = arr[i - 1];
+		for (int i = dataSize; i > pos.index; --i)
+			memcpy(&arr[i], &arr[i - 1], sizeof(T));
 		++dataSize;
-		arr[pos.index] = value;
+		new(&arr[pos.index]) T(value);
 		return iterator(this, pos.index);
 	}
 	/**
@@ -430,11 +429,10 @@ public:
 			throw index_out_of_bound();
 		if (dataSize + 1 == arrSize)
 			expand();
-		new(&arr[dataSize]) T(arr[dataSize - 1]);
-		for (int i = dataSize - 1; i > ind; --i)
-			arr[i] = arr[i - 1];
+		for (int i = dataSize; i > ind; --i)
+			memcpy(&arr[i], &arr[i - 1], sizeof(T));
 		++dataSize;
-		arr[ind] = value;
+		new(&arr[ind]) T(value);
 		return iterator(this, ind);
 	}
 	/**
@@ -446,9 +444,9 @@ public:
 	{
 		if (pos.vec != this)
 			throw invalid_iterator();
-		for (int i = pos.index; i < dataSize; ++i)
-			arr[i] = arr[i + 1];
-		arr[dataSize].~T();
+		arr[pos.index].~T();
+		for (int i = pos.index; i < dataSize - 1; ++i)
+			memcpy(&arr[i], &arr[i + 1], sizeof(T));
 		--dataSize;
 		return iterator(this, pos.index);
 	}
@@ -461,9 +459,9 @@ public:
 	{
 		if (ind >= dataSize)
 			throw index_out_of_bound();
-		for (int i = ind; i < dataSize; ++i)
-			arr[i] = arr[i + 1];
-		arr[dataSize].~T();
+		arr[ind].~T();
+		for (int i = ind; i < dataSize - 1; ++i)
+			memcpy(&arr[i], &arr[i + 1], sizeof(T));
 		--dataSize;
 		return iterator(this, ind);
 	}
