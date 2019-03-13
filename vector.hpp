@@ -287,6 +287,8 @@ public:
 	 */
 	vector &operator=(const vector &other)
 	{
+		if (this == &other)
+			return *this;
 		if (arrSize < other.arrSize)
 		{
 			arrSize = other.arrSize;
@@ -296,6 +298,7 @@ public:
 		dataSize = other.dataSize;
 		for (int i = 0; i < other.dataSize; ++i)
 			memcpy(&arr[i], &other.arr[i], sizeof(T));
+		return *this;
 	}
 	/**
 	 * assigns specified element with bounds checking

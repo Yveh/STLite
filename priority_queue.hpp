@@ -32,11 +32,12 @@ private:
     
     void del(node *cur)
     {
+    	if (cur == nullptr)
+    		return;
     	node *tmp = cur, *_right;
     	do
         {
-        	if (tmp->child != nullptr)
-        		del(tmp->child);
+       		del(tmp->child);
         	_right = tmp->right;
             delete tmp;
             tmp = _right;
@@ -44,10 +45,11 @@ private:
     }
     void cra(node **cur, node *other)
     {
+    	if (other == nullptr)
+    		return;
         node *tail = new node(other->key, other->degree);
         node *head = tail;
-        if (other->child != nullptr)
-            cra(&(tail->child), other->child);
+        cra(&(tail->child), other->child);
         node *tmp = other->right;
         while (tmp != other)
         {
@@ -55,8 +57,7 @@ private:
             tail->right->left = tail;
             tail = tail->right;
 
-            if (tmp->child != nullptr)
-                cra(&(tail->child), tmp->child);
+            cra(&(tail->child), tmp->child);
             
             tmp = tmp->right;
         }
@@ -90,8 +91,7 @@ public:
 	 */
 	~priority_queue()
     {
-    	if (min != nullptr)
-        	del(min);
+       	del(min);
         delete []A;
     }
 	/**
@@ -99,6 +99,9 @@ public:
 	 */
 	priority_queue &operator=(const priority_queue &other)
     {
+    	if (this == &other)
+    		return *this;
+    	del(min);
         cra(&min, other.min);
         keyNum = other.keyNum;
         return *this;
@@ -251,6 +254,7 @@ public:
             keyNum += other.keyNum;
         }
         other.min = nullptr;
+        other.keyNum = 0;
     }
 };
 

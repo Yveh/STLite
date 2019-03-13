@@ -11,7 +11,7 @@ template<class T>
 class deque
 {
 private:
-	const size_t B = 256;
+	const size_t B = 1024;
 	class node;
 	class block{
 	public:
@@ -150,16 +150,14 @@ public:
 		 *   just add whatever you want.
 		 */
 		deque *dq;
-		block *blk;
 		node *nd;
 	public:
-		iterator(deque *_dq, block *_blk, node *_nd) : dq(_dq), blk(_blk), nd(_nd) {}
-		iterator() : dq(nullptr), blk(nullptr), nd(nullptr) {}
-		iterator(const iterator &other) : dq(other.dq), blk(other.blk), nd(other.nd) {}
+		iterator(deque *_dq, node *_nd) : dq(_dq), nd(_nd) {}
+		iterator() : dq(nullptr), nd(nullptr) {}
+		iterator(const iterator &other) : dq(other.dq), nd(other.nd) {}
 		iterator & operator=(const iterator &other)
 		{
 			dq = other.dq;
-			blk = other.blk;
 			nd = other.nd;
 		}
 		/**
@@ -179,12 +177,14 @@ public:
 				tmpNode = tmpNode->succ;
 			}
 			if (res == 0)
-				return iterator(dq, blk, tmpNode);
+				return iterator(dq, tmpNode);
 			
 			--res;
 			block *tmpBlock = tmpNode->par->succ;
+			if (tmpBlock == nullptr)
+				throw invalid_iterator();
 			res -= tmpBlock->size;
-			while (res >= 0)
+			while (res >= 0 && tmpBlock->succ != nullptr)
 			{
 				tmpBlock = tmpBlock->succ;
 				res -= tmpBlock->size;
@@ -192,12 +192,14 @@ public:
 			res += tmpBlock->size;
 			
 			tmpNode = tmpBlock->listHead;
-			while (res > 0)
+			while (res > 0 && tmpNode->succ != nullptr)
 			{
 				--res;
 				tmpNode = tmpNode->succ;
 			}
-			return iterator(dq, tmpBlock, tmpNode);
+			if (res > 0)
+				throw invalid_iterator();
+			return iterator(dq, tmpNode);
 		}
 		iterator operator-(const int &n) const
 		{
@@ -211,12 +213,14 @@ public:
 				tmpNode = tmpNode->prev;
 			}
 			if (res == 0)
-				return iterator(dq, blk, tmpNode);
+				return iterator(dq, tmpNode);
 			
 			--res;
 			block *tmpBlock = tmpNode->par->prev;
+			if (tmpBlock == nullptr)
+				throw invalid_iterator();
 			res -= tmpBlock->size;
-			while (res >= 0)
+			while (res >= 0 && tmpBlock->prev != nullptr)
 			{
 				tmpBlock = tmpBlock->prev;
 				res -= tmpBlock->size;
@@ -224,12 +228,14 @@ public:
 			res += tmpBlock->size;
 			
 			tmpNode = tmpBlock->listTail;
-			while (res > 0)
+			while (res > 0 && tmpNode->prev != nullptr)
 			{
 				--res;
 				tmpNode = tmpNode->prev;
 			}
-			return iterator(dq, tmpBlock, tmpNode);
+			if (res > 0)
+				throw invalid_iterator();
+			return iterator(dq, tmpNode);
 		}
 		// return th distance between two iterator,
 		// if these two iterators points to different vectors, throw invaild_iterator.
@@ -290,7 +296,7 @@ public:
 		 */
 		iterator operator++(int)
 		{
-			iterator ret(dq, blk, nd);
+			iterator ret(dq, nd);
 			*this += 1;
 			return ret;
 		}
@@ -307,7 +313,7 @@ public:
 		 */
 		iterator operator--(int)
 		{
-			iterator ret(dq, blk, nd);
+			iterator ret(dq, nd);
 			*this -= 1;
 			return ret;
 		}
@@ -324,6 +330,8 @@ public:
 		 */
 		T& operator*() const
 		{
+			if (*this == dq->end())
+				throw invalid_iterator();
 			return *(nd->data);
 		}
 		/**
@@ -331,6 +339,8 @@ public:
 		 */
 		T* operator->() const noexcept
 		{
+			if (*this == dq->end())
+				throw invalid_iterator();
 			return nd->data;
 		}
 		/**
@@ -338,22 +348,22 @@ public:
 		 */
 		bool operator==(const iterator &rhs) const
 		{
-			return (dq == rhs.dq) && (blk == rhs.blk) && (nd == rhs.nd);
+			return (dq == rhs.dq) && (nd == rhs.nd);
 		}
 		bool operator==(const const_iterator &rhs) const
 		{
-			return (dq == rhs.dq) && (blk == rhs.blk) && (nd == rhs.nd);
+			return (dq == rhs.dq) && (nd == rhs.nd);
 		}
 		/**
 		 * some other operator for iterator.
 		 */
 		bool operator!=(const iterator &rhs) const
 		{
-			return (dq != rhs.dq) || (blk != rhs.blk) || (nd != rhs.nd);
+			return (dq != rhs.dq) || (nd != rhs.nd);
 		}
 		bool operator!=(const const_iterator &rhs) const
 		{
-			return (dq != rhs.dq) || (blk != rhs.blk) || (nd != rhs.nd);
+			return (dq != rhs.dq) || (nd != rhs.nd);
 		}
 	};
 	class const_iterator {
@@ -362,18 +372,16 @@ public:
 		friend deque;
 	private:
 		const deque *dq;
-		block *blk;
 		node *nd;
 		
 	public:
-		const_iterator(const deque *_dq, block *_blk, node *_nd) : dq(_dq), blk(_blk), nd(_nd) {}
-		const_iterator() : dq(nullptr), blk(nullptr), nd(nullptr) {}
-		const_iterator(const const_iterator &other) : dq(other.dq), blk(other.blk), nd(other.nd) {}
-		const_iterator(const iterator &other) : dq(other.dq), blk(other.blk), nd(other.nd) {}
+		const_iterator(const deque *_dq, node *_nd) : dq(_dq), nd(_nd) {}
+		const_iterator() : dq(nullptr), nd(nullptr) {}
+		const_iterator(const const_iterator &other) : dq(other.dq), nd(other.nd) {}
+		const_iterator(const iterator &other) : dq(other.dq), nd(other.nd) {}
 		const_iterator & operator=(const iterator &other)
 		{
 			dq = other.dq;
-			blk = other.blk;
 			nd = other.nd;
 		}
 			/**
@@ -393,12 +401,14 @@ public:
 				tmpNode = tmpNode->succ;
 			}
 			if (res == 0)
-				return iterator(dq, blk, tmpNode);
+				return const_iterator(dq, tmpNode);
 			
 			--res;
 			block *tmpBlock = tmpNode->par->succ;
+			if (tmpBlock == nullptr)
+				throw invalid_iterator();
 			res -= tmpBlock->size;
-			while (res >= 0)
+			while (res >= 0 && tmpBlock->succ != nullptr)
 			{
 				tmpBlock = tmpBlock->succ;
 				res -= tmpBlock->size;
@@ -406,12 +416,14 @@ public:
 			res += tmpBlock->size;
 			
 			tmpNode = tmpBlock->listHead;
-			while (res > 0)
+			while (res > 0 && tmpNode->succ != nullptr)
 			{
 				--res;
 				tmpNode = tmpNode->succ;
 			}
-			return iterator(dq, tmpBlock, tmpNode);
+			if (res > 0)
+				throw invalid_iterator();
+			return const_iterator(dq, tmpNode);
 		}
 		const_iterator operator-(const int &n) const
 		{
@@ -425,12 +437,14 @@ public:
 				tmpNode = tmpNode->prev;
 			}
 			if (res == 0)
-				return iterator(dq, blk, tmpNode);
+				return const_iterator(dq, tmpNode);
 			
 			--res;
 			block *tmpBlock = tmpNode->par->prev;
+			if (tmpBlock == nullptr)
+				throw invalid_iterator();
 			res -= tmpBlock->size;
-			while (res >= 0)
+			while (res >= 0 && tmpBlock->prev != nullptr)
 			{
 				tmpBlock = tmpBlock->prev;
 				res -= tmpBlock->size;
@@ -438,12 +452,14 @@ public:
 			res += tmpBlock->size;
 			
 			tmpNode = tmpBlock->listTail;
-			while (res > 0)
+			while (res > 0 && tmpNode->prev != nullptr)
 			{
 				--res;
 				tmpNode = tmpNode->prev;
 			}
-			return iterator(dq, tmpBlock, tmpNode);
+			if (res > 0)
+				throw invalid_iterator();
+			return const_iterator(dq, tmpNode);
 		}
 		// return th distance between two iterator,
 		// if these two iterators points to different vectors, throw invaild_iterator.
@@ -504,11 +520,11 @@ public:
 		 */
 		const_iterator operator++(int)
 		{
-			const_iterator ret(dq, blk, nd);
+			const_iterator ret(dq, nd);
 			if (nd->succ != nullptr)
 				nd = nd->succ;
 			else if (nd->par->succ == nullptr)
-				*this = dq->end();
+				*this = dq->cend();
 			else
 				nd = nd->par->succ->listHead;
 			return ret;
@@ -521,7 +537,7 @@ public:
 			if (nd->succ != nullptr)
 				nd = nd->succ;
 			else if (nd->par->succ == nullptr)
-				*this = dq->end();
+				*this = dq->cend();
 			else
 				nd = nd->par->succ->listHead;
 			return *this;
@@ -531,11 +547,11 @@ public:
 		 */
 		const_iterator operator--(int)
 		{
-			const_iterator ret(dq, blk, nd);
+			const_iterator ret(dq, nd);
 			if (nd->prev != nullptr)
 				nd = nd->prev;
 			else if (nd->par->prev == nullptr)
-				*this = dq->end();
+				*this = dq->cend();
 			else
 				nd = nd->par->prev->listTail;
 			return ret;
@@ -548,7 +564,7 @@ public:
 			if (nd->prev != nullptr)
 				nd = nd->prev;
 			else if (nd->par->prev == nullptr)
-				*this = dq->end();
+				*this = dq->cend();
 			else
 				nd = nd->par->prev->listTail;
 			return *this;
@@ -558,6 +574,8 @@ public:
 		 */
 		const T& operator*() const
 		{
+			if (*this == dq->cend())
+				throw invalid_iterator();
 			return *(nd->data);
 		}
 		/**
@@ -565,6 +583,8 @@ public:
 		 */
 		const T* operator->() const noexcept
 		{
+			if (*this == dq->cend())
+				throw invalid_iterator();
 			return nd->data;
 		}
 		/**
@@ -572,22 +592,22 @@ public:
 		 */
 		bool operator==(const iterator &rhs) const
 		{
-			return (dq == rhs.dq) && (blk == rhs.blk) && (nd == rhs.nd);
+			return (dq == rhs.dq) && (nd == rhs.nd);
 		}
 		bool operator==(const const_iterator &rhs) const
 		{
-			return (dq == rhs.dq) && (blk == rhs.blk) && (nd == rhs.nd);
+			return (dq == rhs.dq) && (nd == rhs.nd);
 		}
 		/**
 		 * some other operator for iterator.
 		 */
 		bool operator!=(const iterator &rhs) const
 		{
-			return (dq != rhs.dq) || (blk != rhs.blk) || (nd != rhs.nd);
+			return (dq != rhs.dq) || (nd != rhs.nd);
 		}
 		bool operator!=(const const_iterator &rhs) const
 		{
-			return (dq != rhs.dq) || (blk != rhs.blk) || (nd != rhs.nd);
+			return (dq != rhs.dq) || (nd != rhs.nd);
 		}
 	};
 	/**
@@ -599,6 +619,7 @@ public:
 		blockTail = blockHead;
 		blockHead->listHead = new node();
 		blockHead->listTail = blockHead->listHead;
+		blockHead->listHead->par = blockHead;
 		dataSize = 1;
 	}
 	deque(const deque &other)
@@ -689,7 +710,7 @@ public:
 	 */
 	T & at(const size_t &pos)
 	{
-		if (pos < 0 || pos > dataSize - 1)
+		if (pos < 0 || pos >= dataSize - 1)
 			throw index_out_of_bound();
 		int res = pos;
 		block *tmpBlock = blockHead;
@@ -711,7 +732,7 @@ public:
 	}
 	const T & at(const size_t &pos) const
 	{
-		if (pos < 0 || pos > dataSize - 1)
+		if (pos < 0 || pos >= dataSize - 1)
 			throw index_out_of_bound();
 		int res = pos;
 		block *tmpBlock = blockHead;
@@ -770,22 +791,22 @@ public:
 	 */
 	iterator begin()
 	{
-		return iterator(this, blockHead, blockHead->listHead);
+		return iterator(this, blockHead->listHead);
 	}
 	const_iterator cbegin() const
 	{
-		return const_iterator(this, blockHead, blockHead->listHead);
+		return const_iterator(this, blockHead->listHead);
 	}
 	/**
 	 * returns an iterator to the end.
 	 */
 	iterator end()
 	{
-		return iterator(this, blockTail, blockTail->listTail);
+		return iterator(this, blockTail->listTail);
 	}
 	const_iterator cend() const
 	{
-		return iterator(this, blockTail, blockTail->listTail);
+		return const_iterator(this, blockTail->listTail);
 	}
 	/**
 	 * checks whether the container is empty.
@@ -811,6 +832,7 @@ public:
 		blockTail = blockHead;
 		blockHead->listHead = new node();
 		blockHead->listTail = blockHead->listHead;
+		blockHead->listHead->par = blockHead;
 		dataSize = 1;
 	}
 	/**
@@ -824,21 +846,21 @@ public:
 		if (pos.dq != this)
 			throw invalid_iterator();
 		node *tmpNode = new node(value);
-		tmpNode->par = pos.blk;
+		tmpNode->par = pos.nd->par;
 		tmpNode->prev = pos.nd->prev;
 		tmpNode->succ = pos.nd;
 		if (pos.nd->prev != nullptr)
 			pos.nd->prev->succ = tmpNode;
 		else
-			pos.blk->listHead = tmpNode;
+			pos.nd->par->listHead = tmpNode;
 		pos.nd->prev = tmpNode;
 		
 		++dataSize;
-		++pos.blk->size;
+		++pos.nd->par->size;
 		
-		maintain(pos.blk);
+		maintain(pos.nd->par);
 		
-		return --pos;
+		return pos - 1;
 	}
 	/**
 	 * removes specified element at pos.
@@ -854,17 +876,17 @@ public:
 		if (pos.nd->prev != nullptr)
 			pos.nd->prev->succ = pos.nd->succ;
 		else
-			pos.blk->listHead = pos.nd->succ;
+			pos.nd->par->listHead = pos.nd->succ;
 		if (pos.nd->succ != nullptr)
 			pos.nd->succ->prev = pos.nd->prev;
 		else
-			pos.blk->listTail = pos.nd->prev;
-		delete pos.nd;
+			pos.nd->par->listTail = pos.nd->prev;
 		
 		--dataSize;
-		--pos.blk->size;
+		--pos.nd->par->size;
+		maintain(pos.nd->par);
 		
-		maintain(pos.blk);
+		delete pos.nd;
 		
 		return ret;
 	}
