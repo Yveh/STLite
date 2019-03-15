@@ -11,7 +11,7 @@ template<class T>
 class deque
 {
 private:
-	const size_t B = 1024;
+	const size_t B = 256;
 	class node;
 	class block{
 	public:
